@@ -37,6 +37,12 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ProductNoId'
+      parameters:
+        - in: header
+          name: customerId
+          schema: 
+            type: integer
+          required: true
       responses:
         '201':
           description: product created
@@ -94,6 +100,11 @@ paths:
             type: string
             format: uuid
           required: true
+        - in: header
+          name: customerId
+          schema: 
+            type: integer
+          required: true
       requestBody:
         content:
           application/json:
@@ -118,6 +129,11 @@ paths:
           schema:
             type: string
             format: uuid
+          required: true
+        - in: header
+          name: customerId
+          schema: 
+            type: integer
           required: true
       responses:
         '204':
