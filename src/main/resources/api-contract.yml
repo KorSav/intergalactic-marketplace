@@ -12,22 +12,7 @@ paths:
     get:
       tags:
         - customers
-      summary: gets products from specific page
-      parameters:
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            minimum: 5
-            maximum: 100
-          description: amount of products to take
-          required: true
-        - in: query
-          name: offset
-          schema:
-            type: integer
-          description: amount of products to skip
-          required: true
+      summary: gets all products 
       responses:
         '200':
           description: all products
