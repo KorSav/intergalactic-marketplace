@@ -1,5 +1,6 @@
 package com.example.intergalactic_marketplace.web;
 
+import org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties.Web;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -10,6 +11,7 @@ import java.util.Map;
 import java.net.URI;
 
 import com.example.intergalactic_marketplace.service.exception.CustomerHasNoRulesToDeleteProductException;
+import com.example.intergalactic_marketplace.service.exception.CustomerNotFoundException;
 import com.example.intergalactic_marketplace.service.exception.ProductAlreadyExistsException;
 import com.example.intergalactic_marketplace.service.exception.ProductNotFoundException;
 import com.example.intergalactic_marketplace.service.exception.ProductsNotFoundException;
@@ -66,6 +68,19 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.FORBIDDEN);
         problemDetail.setProperties(Map.of(
             "error", URI.create("customer-has-no-rules"),
+            "path", path,
+            "message", ex.getMessage()
+        ));
+        return problemDetail;
+    }
+
+    @ExceptionHandler(CustomerNotFoundException.class)
+    ProblemDetail handleCustomerNotFoundException(CustomerNotFoundException ex, WebRequest request) {
+        log.info("Customer not found exception raised");
+        String path = request.getDescription(false).replace("uri=", "");
+        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        problemDetail.setProperties(Map.of(
+            "error", URI.create("customer-not-found"),
             "path", path,
             "message", ex.getMessage()
         ));
