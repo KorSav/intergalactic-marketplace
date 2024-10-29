@@ -23,11 +23,12 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class ProductServiceImpl implements ProductService {
 
-    private final List<Product> products = buildAllProductsMock();
+    private final List<Product> products;
     private final CustomerService customerService;
 
     public ProductServiceImpl(CustomerService customerService){
         this.customerService = customerService;
+        products = buildAllProductsMock();
     }
 
     @Override
