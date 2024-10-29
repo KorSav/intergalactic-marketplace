@@ -5,7 +5,7 @@ import lombok.Value;
 import java.util.UUID;
 
 @Value
-@Builder
+@Builder(toBuilder = true)
 public class Product {
     UUID id;
     String name;
