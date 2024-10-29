@@ -27,7 +27,8 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
         problemDetail.setProperties(Map.of(
             "error", URI.create("product-not-found"),
-            "path", path
+            "path", path,
+            "message", ex.getMessage()
         ));
         return problemDetail;
     }
@@ -39,7 +40,8 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
         problemDetail.setProperties(Map.of(
             "error", URI.create("products-not-found"),
-            "path", path
+            "path", path,
+            "message", ex.getMessage()
         ));
         return problemDetail;
     }
@@ -51,7 +53,8 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.CONFLICT);
         problemDetail.setProperties(Map.of(
             "error", URI.create("product-already-exists"),
-            "path", path
+            "path", path,
+            "message", ex.getMessage()
         ));
         return problemDetail;
     }
@@ -63,7 +66,8 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.FORBIDDEN);
         problemDetail.setProperties(Map.of(
             "error", URI.create("customer-has-no-rules"),
-            "path", path
+            "path", path,
+            "message", ex.getMessage()
         ));
         return problemDetail;
     }
