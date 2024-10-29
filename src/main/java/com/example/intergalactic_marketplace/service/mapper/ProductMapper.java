@@ -24,9 +24,9 @@ public interface ProductMapper {
     @Mapping(target = "category", source = "category.name")
     ProductEntry toProductEntry(Product product);
 
-    default ProductListDto toCustomerDetailsListDto(List<Product> products) {
-        return ProductListDto.builder().products(toProductListDto(products)).build();
+    default ProductListDto toProductListDto(List<Product> products) {
+        return ProductListDto.builder().products(toProductEntries(products)).build();
     }
 
-    List<ProductEntry> toProductListDto(List<Product> product);
+    List<ProductEntry> toProductEntries(List<Product> product);
 }
