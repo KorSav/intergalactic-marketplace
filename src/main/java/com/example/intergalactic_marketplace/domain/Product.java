@@ -12,5 +12,6 @@ public class Product {
     String description;
     int price;
 
+    Customer owner;
     Category category;
 }

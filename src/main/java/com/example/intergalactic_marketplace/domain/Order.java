@@ -12,5 +12,6 @@ public class Order {
     UUID id;
     String status;
 
+    Customer customer;
     List<Product> products;
 }
