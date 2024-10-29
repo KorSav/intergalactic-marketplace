@@ -9,6 +9,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import java.util.Map;
 import java.net.URI;
 
+import com.example.intergalactic_marketplace.service.exception.CustomerHasNoRulesToDeleteProductException;
 import com.example.intergalactic_marketplace.service.exception.ProductAlreadyExistsException;
 import com.example.intergalactic_marketplace.service.exception.ProductNotFoundException;
 import com.example.intergalactic_marketplace.service.exception.ProductsNotFoundException;
@@ -50,6 +51,18 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.CONFLICT);
         problemDetail.setProperties(Map.of(
             "error", URI.create("product-already-exists"),
+            "path", path
+        ));
+        return problemDetail;
+    }
+
+    @ExceptionHandler(CustomerHasNoRulesToDeleteProductException.class)
+    ProblemDetail handleCustomerHasNoRulesToDeleteProduct(CustomerHasNoRulesToDeleteProductException ex, WebRequest request) {
+        log.info("Customer has no rules to delete product exception raised");
+        String path = request.getDescription(false).replace("uri=", "");
+        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.FORBIDDEN);
+        problemDetail.setProperties(Map.of(
+            "error", URI.create("customer-has-no-rules"),
             "path", path
         ));
         return problemDetail;
