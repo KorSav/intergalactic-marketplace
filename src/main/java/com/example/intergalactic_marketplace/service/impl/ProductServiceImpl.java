@@ -12,6 +12,7 @@ import com.example.intergalactic_marketplace.domain.Customer;
 import com.example.intergalactic_marketplace.service.CustomerService;
 import com.example.intergalactic_marketplace.service.ProductService;
 import com.example.intergalactic_marketplace.service.exception.CustomerHasNoRulesToDeleteProductException;
+import com.example.intergalactic_marketplace.service.exception.CustomerHasNoRulesToUpdateProductException;
 import com.example.intergalactic_marketplace.service.exception.ProductAlreadyExistsException;
 import com.example.intergalactic_marketplace.service.exception.ProductNotFoundException;
 import com.example.intergalactic_marketplace.service.exception.ProductsNotFoundException;
@@ -30,13 +31,15 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public UUID createProduct(Product product) {
+    public UUID createProduct(Product product, Long id) {
+        Customer customer = customerService.getCustomerById(id);
         if (products.stream().anyMatch(
             p -> p.getName().equals(product.getName()))){
             throw new ProductAlreadyExistsException(product.getName());
         }
         Product newProduct = product.toBuilder()
                 .id(UUID.randomUUID())
+                .owner(customer)
                 .build();
         products.add(newProduct);
         return newProduct.getId();
@@ -62,8 +65,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public void updateProduct(Product product) {
+    public void updateProduct(Product product, Long id) {
         Product existingProduct = getProductById(product.getId());
+        if (!existingProduct.getOwner().getId().equals(id)){
+            throw new CustomerHasNoRulesToUpdateProductException(id, product.getId());
+        }
         Product updatedProduct = existingProduct.toBuilder()
             .name(product.getName())
             .description(product.getDescription())
