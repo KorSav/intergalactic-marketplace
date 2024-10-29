@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.example.intergalactic_marketplace.domain.Product;
 import com.example.intergalactic_marketplace.domain.Category;
 import com.example.intergalactic_marketplace.domain.Customer;
+import com.example.intergalactic_marketplace.service.CustomerService;
 import com.example.intergalactic_marketplace.service.ProductService;
 import com.example.intergalactic_marketplace.service.exception.CustomerHasNoRulesToDeleteProductException;
 import com.example.intergalactic_marketplace.service.exception.ProductAlreadyExistsException;
@@ -22,6 +23,11 @@ import lombok.extern.slf4j.Slf4j;
 public class ProductServiceImpl implements ProductService {
 
     private final List<Product> products = buildAllProductsMock();
+    private final CustomerService customerService;
+
+    public ProductServiceImpl(CustomerService customerService){
+        this.customerService = customerService;
+    }
 
     @Override
     public UUID createProduct(Product product) {
@@ -89,18 +95,8 @@ public class ProductServiceImpl implements ProductService {
             .name("Cosmic Toys")
             .build();
 
-        Customer customer1 = Customer.builder()
-            .id(1L)
-            .name("John Doe")
-            .address("123 Space St")
-            .email("john.doe@example.com")
-            .build();
-        Customer customer2 = Customer.builder()
-            .id(2L)
-            .name("Jane Smith")
-            .address("456 Galactic Ave")
-            .email("jane.smith@example.com")
-            .build();
+        Customer customer1 = customerService.getCustomerById(1L);
+        Customer customer2 = customerService.getCustomerById(2L);
 
         products.add(Product.builder()
                 .id(UUID.randomUUID())
