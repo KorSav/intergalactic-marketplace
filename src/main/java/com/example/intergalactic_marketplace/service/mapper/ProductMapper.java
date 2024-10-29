@@ -29,4 +29,10 @@ public interface ProductMapper {
     }
 
     List<ProductEntry> toProductEntries(List<Product> product);
+
+    @Mapping(target = "name", source = "name")
+    @Mapping(target = "description", source = "description")
+    @Mapping(target = "price", source = "price")
+    @Mapping(target = "category", source = "category")
+    Product toProduct(ProductDto productDto);
 }
