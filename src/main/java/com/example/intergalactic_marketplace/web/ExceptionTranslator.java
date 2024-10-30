@@ -1,11 +1,18 @@
 package com.example.intergalactic_marketplace.web;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+import java.util.List;
 import java.util.Map;
 import java.net.URI;
 
@@ -15,6 +22,8 @@ import com.example.intergalactic_marketplace.service.exception.CustomerNotFoundE
 import com.example.intergalactic_marketplace.service.exception.ProductAlreadyExistsException;
 import com.example.intergalactic_marketplace.service.exception.ProductNotFoundException;
 import com.example.intergalactic_marketplace.service.exception.ProductsNotFoundException;
+import com.example.intergalactic_marketplace.web.exception.ParamsViolationDetails;
+import com.example.intergalactic_marketplace.util.ProblemDetailsUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -98,5 +107,17 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
             "message", ex.getMessage()
         ));
         return problemDetail;
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status,
+        WebRequest request) {
+        log.info("Input params validation failed");
+        List<FieldError> errors = ex.getBindingResult().getFieldErrors();
+        List<ParamsViolationDetails> validationResponse =
+            errors.stream().map(err -> ParamsViolationDetails.builder().reason(err.getDefaultMessage()).fieldName(err.getField()).build()).toList();
+        String path = request.getDescription(false).replace("uri=", "");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(ProblemDetailsUtils.getValidationErrorsProblemDetail(validationResponse, path));
     }
 }

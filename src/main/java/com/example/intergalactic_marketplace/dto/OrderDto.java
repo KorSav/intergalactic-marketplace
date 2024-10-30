@@ -11,6 +11,5 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class OrderDto {
     UUID id;
-    String status;
     ProductListDto products;
 }

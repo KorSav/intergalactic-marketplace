@@ -9,7 +9,6 @@ import com.example.intergalactic_marketplace.dto.OrderDto;
 @Mapper(componentModel = "spring", uses = ProductMapper.class)
 public interface OrderMapper {
     @Mapping(target = "id", source = "id")
-    @Mapping(target = "status", source = "status")
     @Mapping(target = "products", source = "products")
     OrderDto toOrderDto(Order order);
 }

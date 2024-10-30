@@ -3,6 +3,7 @@ package com.example.intergalactic_marketplace.web;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +16,8 @@ import com.example.intergalactic_marketplace.dto.ProductListDto;
 import com.example.intergalactic_marketplace.service.ProductService;
 import com.example.intergalactic_marketplace.service.mapper.ProductMapper;
 
+import jakarta.validation.Valid;
+
 import java.util.UUID;
 import java.net.URI;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
+@Validated
 @RequestMapping("v1/products")
 public class ProductController {
     private final ProductService productService;
@@ -44,7 +48,7 @@ public class ProductController {
     }
     
     @PostMapping
-    public ResponseEntity<Void> createProduct(@RequestBody ProductDto productDto, @RequestHeader Long customerId) {
+    public ResponseEntity<Void> createProduct(@RequestBody @Valid ProductDto productDto, @RequestHeader Long customerId) {
         UUID productId = productService.createProduct(productMapper.toProduct(productDto), customerId);
         URI location = URI.create(String.format("v1/products/%s", productId));
         HttpHeaders headers = new HttpHeaders();
