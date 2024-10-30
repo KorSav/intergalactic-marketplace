@@ -1,5 +1,9 @@
 package com.example.intergalactic_marketplace.dto;
 
+import com.example.intergalactic_marketplace.dto.validation.CosmicWordCheck;
+import com.example.intergalactic_marketplace.dto.validation.ExtendedValidation;
+
+import jakarta.validation.GroupSequence;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -12,11 +16,13 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Builder
 @Jacksonized
+@GroupSequence({ProductDto.class, ExtendedValidation.class})
 public class ProductDto {
 
     @NotBlank(message = "Product name could not be blank")
     @Size(min = 5, message = "Product name could not be shorter than 5 characters")
     @Size(max = 30, message = "Product name could not be longer than 30 characters")
+    @CosmicWordCheck(groups = ExtendedValidation.class)
     String name;
 
     @NotBlank(message = "Product description could not be blank")
