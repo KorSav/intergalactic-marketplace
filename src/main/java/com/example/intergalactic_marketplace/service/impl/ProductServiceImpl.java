@@ -71,6 +71,10 @@ public class ProductServiceImpl implements ProductService {
         if (!existingProduct.getOwner().getId().equals(id)){
             throw new CustomerHasNoRulesToUpdateProductException(id, product.getId());
         }
+        if (products.stream().anyMatch(
+            p -> p.getName().equals(product.getName()))){
+            throw new ProductAlreadyExistsException(product.getName());
+        }
         Product updatedProduct = existingProduct.toBuilder()
             .name(product.getName())
             .description(product.getDescription())
