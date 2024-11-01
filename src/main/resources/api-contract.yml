@@ -1,0 +1,231 @@
+openapi: 3.0.0
+servers: []
+info:
+  description: This is API for intergalactic marketplace
+  version: "1.0.0"
+  title: Cosmic Cats Intergalactic Marketplace
+tags:
+  - name: customers
+    description: Operations available to every customer
+paths:
+  /v1/products:
+    get:
+      tags:
+        - customers
+      summary: gets all products 
+      responses:
+        '200':
+          description: all products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+        '404':
+          description: there are no resources
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - customers
+      summary: create new product
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductNoId'
+      parameters:
+        - in: header
+          name: customerId
+          schema: 
+            type: integer
+          required: true
+      responses:
+        '201':
+          description: product created
+          headers:
+            Location:
+              schema:
+                type: string
+                example: '/v1/products/d290f1ee-6c54-4b01-90e6-d701748f0851'
+              description: uri of new product
+        '400':
+          description: invalid input 
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/Error'
+        '409':
+          description: resource already exists
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/Error'
+  /v1/products/{id}:
+    get:
+      tags:
+        - customers
+      summary: get specific product
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: product by uuid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: no such product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - customers
+      summary: update specific product
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: header
+          name: customerId
+          schema: 
+            type: integer
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductNoId'
+      responses:
+        '200':
+          description: successfully updated
+        '400':
+          description: incorrect request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - customers
+      summary: delete specific product
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: header
+          name: customerId
+          schema: 
+            type: integer
+          required: true
+      responses:
+        '204':
+          description: successfully deleted
+        '403':
+          description: unable to delete, lack of rules
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    ProductNoId:
+      type: object
+      required:
+        - name
+        - price
+        - count
+        - category
+      properties:
+        name:
+          type: string
+          example: Cosmic thread
+          minLength: 5
+          maxLength: 30
+        price:
+          type: integer
+          example: 50
+          minimum: 1
+          maximum: 100000
+        count:
+          type: integer
+          example: 5
+          description: amount of products remained
+          minimum: 0
+          maximum: 10000
+        category:
+          type: string
+          example: Sewing tools
+          minLength: 5
+          maxLength: 30
+    Product:
+      type: object
+      required:
+        - id
+        - name
+        - price
+        - count
+        - category
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Cosmic thread
+          minLength: 5
+          maxLength: 30
+        description:
+          type: string
+          example: Allows you to sew cosmic hats
+          minLength: 5
+          maxLength: 500
+        price:
+          type: integer
+          example: 50
+          minimum: 1
+          maximum: 100000
+        category:
+          type: string
+          example: Sewing tools
+          minLength: 5
+          maxLength: 30
+    Error:
+      type: object
+      required:
+        - status
+        - error
+        - message
+        - path
+      properties:
+        status:
+          type: integer
+          example: 400
+        error:
+          type: string
+          example: Bad Request
+        message:
+          type: string
+          example: |
+            Validation failed for object 'ProductDTO': 
+            Field 'price' must be greater than 0.
+        path:
+          type: string
+          example: /v1/products
