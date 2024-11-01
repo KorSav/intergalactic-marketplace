@@ -16,7 +16,7 @@ import com.example.intergalactic_marketplace.config.MappersTestConfiguration;
 import com.example.intergalactic_marketplace.domain.Category;
 import com.example.intergalactic_marketplace.domain.Customer;
 import com.example.intergalactic_marketplace.domain.Product;
-import com.example.intergalactic_marketplace.dto.ProductDto;
+import com.example.intergalactic_marketplace.dto.Product.ProductDto;
 import com.example.intergalactic_marketplace.service.ProductService;
 import com.example.intergalactic_marketplace.service.exception.CustomerHasNoRulesToDeleteProductException;
 import com.example.intergalactic_marketplace.service.exception.ProductNotFoundException;

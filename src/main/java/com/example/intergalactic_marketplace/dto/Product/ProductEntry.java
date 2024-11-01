@@ -1,4 +1,4 @@
-package com.example.intergalactic_marketplace.dto;
+package com.example.intergalactic_marketplace.dto.Product;
 
 import java.util.UUID;
 import lombok.Builder;
@@ -9,9 +9,9 @@ import lombok.extern.jackson.Jacksonized;
 @Builder
 @Jacksonized
 public class ProductEntry {
-    UUID id;
-    String name;
-    String description;
-    int price;
-    String category;
+  UUID id;
+  String name;
+  String description;
+  int price;
+  String category;
 }

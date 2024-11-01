@@ -1,5 +1,6 @@
-package com.example.intergalactic_marketplace.dto;
+package com.example.intergalactic_marketplace.dto.Product;
 
+import com.example.intergalactic_marketplace.dto.Category.CategoryDto;
 import com.example.intergalactic_marketplace.dto.validation.CosmicWordCheck;
 import com.example.intergalactic_marketplace.dto.validation.ExtendedValidation;
 import jakarta.validation.GroupSequence;
