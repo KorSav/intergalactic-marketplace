@@ -1,9 +1,12 @@
-{"properties": [{
-  "name": "application.feature.kittyProducts.enabled",
-  "type": "java.lang.Boolean",
-  "description": "Enables or disables kittyProducts feature"
-}, {
-  "name": "application.feature.cosmoCats.enabled",
-  "type": "java.lang.Boolean",
-  "description": "Enables or disables cosmoCats feature"
-}]}
+{"properties": [
+  {
+    "name": "application.feature.toggles[cosmoCats]",
+    "type": "java.lang.Boolean",
+    "description": "A description for 'application.feature.toggles[cosmoCats]'"
+  },
+  {
+    "name": "application.feature.toggles[kittyProducts]",
+    "type": "java.lang.Boolean",
+    "description": "A description for 'application.feature.toggles[kittyProducts]'"
+  }
+]}
