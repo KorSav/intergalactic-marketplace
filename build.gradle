@@ -29,7 +29,8 @@ ext {
             "**/web/*",
             "**/service/mapper*",
             "**/*CustomerService*",
-            "**/config/*Configuration.*"
+            "**/config/*",
+			"**/featureToggle/*"
     ]
 }
 
