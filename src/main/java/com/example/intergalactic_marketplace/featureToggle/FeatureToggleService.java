@@ -16,4 +16,12 @@ public class FeatureToggleService {
   public boolean check(String featureName) {
     return featureToggles.getOrDefault(featureName, false);
   }
+
+  public void enable(String featureName) {
+    featureToggles.put(featureName, true);
+  }
+
+  public void disable(String featureName) {
+    featureToggles.put(featureName, false);
+  }
 }
