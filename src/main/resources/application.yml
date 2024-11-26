@@ -1,6 +1,9 @@
 spring:
   application:
     name: intergalactic-marketplace
+  liquibase:
+    change-log: classpath:liquibase/changelog.yaml
+    enabled: true
 
 application:
   feature:

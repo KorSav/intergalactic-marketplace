@@ -1,0 +1,55 @@
+databaseChangeLog:
+  - changeSet:
+    id: lab-3-4
+    author: Savelii.Korniiko
+    changes:
+      - createTable:
+        tableName: product
+        columns:
+          - column:
+            name: id 
+            type: UUID
+            constraint:
+              primaryKey: true
+              nullable: false
+          - column:
+            name: name
+            type: VARCHAR(100)
+            constraint:
+              nullable: false
+          - column:
+            name: description
+            type: VARCHAR(500)
+            constraint:
+              nullable: true
+          - column:
+            name: price
+            type: INT
+            constraint:
+              nullable: false
+          - column:
+            name: owner_id
+            type: INT
+            constraint:
+              nullable: false
+          - column:
+            name: category_id
+            type: TINYINT
+            constraint:
+              nullable: true
+      - addForeignKeyConstraint:
+          baseTableName: product
+          baseColumnNames: owner_id
+          referencedTableName: customer
+          referencedColumnNames: id
+          constraintName: fk_product_customer
+      - addForeignKeyConstraint:
+          baseTableName: product
+          baseColumnNames: owner_id
+          referencedTableName: category
+          referencedColumnNames: id
+          constraintName: fk_product_category
+      - addUniqueConstraint:
+          tableName: product
+          columnNames: name, category_id
+          constraintName: uq_product_name_in_category
