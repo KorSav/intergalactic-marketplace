@@ -35,16 +35,15 @@ public class ProductServiceImpl implements ProductService {
   @Transactional
   public UUID createProduct(Product product, Long requesterId) {
     Customer customer = customerService.getCustomerById(requesterId);
-    Optional<ProductEntity> productEntityOptional = null;
+    List<ProductEntity> sameProductEntityList = null;
     try {
-      productEntityOptional = productRepository.findById(product.getId());
+      sameProductEntityList = productRepository.findByName(product.getName());
     } catch (Exception e) {
       throw new PersistenceException(e);
     }
-    productEntityOptional.ifPresent(
-        (existingProduct) -> {
-          throw new ProductAlreadyExistsException(existingProduct.getName());
-        });
+    if (!sameProductEntityList.isEmpty()) {
+      throw new ProductAlreadyExistsException(product.getName());
+    }
     try {
       product = product.toBuilder().owner(customer).build();
       Product savedProduct =

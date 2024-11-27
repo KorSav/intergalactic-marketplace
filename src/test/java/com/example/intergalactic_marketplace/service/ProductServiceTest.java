@@ -118,6 +118,8 @@ public class ProductServiceTest {
     when(productRepository.findById(newProductId)).thenReturn(Optional.of(expectedProductEntity));
     Product actualProduct = productService.getProductById(newProductId);
 
+    when(productRepository.findByName(actualProduct.getName()))
+        .thenReturn(List.of(productMapper.toProductEntity(actualProduct)));
     assertNotNull(actualProduct);
     assertEquals(expectedProduct.getName(), actualProduct.getName());
     assertEquals(expectedProduct.getOwner(), actualProduct.getOwner());

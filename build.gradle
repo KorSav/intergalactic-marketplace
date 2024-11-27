@@ -54,7 +54,7 @@ dependencies {
     implementation 'org.postgresql:postgresql:42.7.4'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-	testImplementation 'com.github.tomakehurst:wiremock:3.0.0'
+	testImplementation 'com.github.tomakehurst:wiremock-standalone:3.0.0'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testCompileOnly 'org.projectlombok:lombok:1.18.34'
 	testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
