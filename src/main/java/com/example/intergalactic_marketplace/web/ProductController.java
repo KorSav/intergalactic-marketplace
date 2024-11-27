@@ -47,7 +47,8 @@ public class ProductController {
   @PostMapping
   public ResponseEntity<Void> createProduct(
       @RequestBody @Valid ProductDto productDto, @RequestHeader Long customerId) {
-    UUID productId = productService.createProduct(productMapper.toProduct(productDto), customerId);
+    UUID productId =
+        productService.createProduct(productMapper.fromProductDto(productDto), customerId);
     URI location = URI.create(String.format("v1/products/%s", productId));
     HttpHeaders headers = new HttpHeaders();
     headers.setLocation(location);
@@ -59,8 +60,8 @@ public class ProductController {
       @PathVariable UUID productId,
       @RequestBody ProductDto productDto,
       @RequestHeader Long customerId) {
-    Product product = productMapper.toProduct(productDto);
-    product.toBuilder().id(productId).build();
+    Product product = productMapper.fromProductDto(productDto);
+    product = product.toBuilder().id(productId).build();
     productService.updateProduct(product, customerId);
     return new ResponseEntity<>(HttpStatus.OK);
   }

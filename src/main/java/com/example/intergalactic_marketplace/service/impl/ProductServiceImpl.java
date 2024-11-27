@@ -6,6 +6,7 @@ import com.example.intergalactic_marketplace.repository.ProductRepository;
 import com.example.intergalactic_marketplace.repository.entity.ProductEntity;
 import com.example.intergalactic_marketplace.service.CustomerService;
 import com.example.intergalactic_marketplace.service.ProductService;
+import com.example.intergalactic_marketplace.service.exception.CustomerHasNoRulesToDeleteProductException;
 import com.example.intergalactic_marketplace.service.exception.CustomerHasNoRulesToUpdateProductException;
 import com.example.intergalactic_marketplace.service.exception.ProductAlreadyExistsException;
 import com.example.intergalactic_marketplace.service.exception.ProductNotFoundException;
@@ -88,16 +89,16 @@ public class ProductServiceImpl implements ProductService {
   @Override
   @Transactional
   public void updateProduct(Product product, Long requesterId) {
-    Optional<ProductEntity> existingProductEntityOptional = null;
+    List<ProductEntity> existingProductsSameName = null;
     try {
-      existingProductEntityOptional = productRepository.findById(product.getId());
+      existingProductsSameName = productRepository.findByName(product.getName());
     } catch (Exception e) {
       throw new PersistenceException(e);
     }
-    if (existingProductEntityOptional.isEmpty()) {
-      throw new ProductNotFoundException(product.getId());
+    if (!existingProductsSameName.isEmpty()) {
+      throw new ProductAlreadyExistsException(product.getName());
     }
-    if (existingProductEntityOptional.get().getOwner().getId() != requesterId) {
+    if (product.getOwner().getId() != requesterId) {
       throw new CustomerHasNoRulesToUpdateProductException(requesterId, product.getId());
     }
     try {
@@ -120,7 +121,7 @@ public class ProductServiceImpl implements ProductService {
       return;
     }
     if (existingProductEntityOptional.get().getOwner().getId() != requesterId) {
-      throw new CustomerHasNoRulesToUpdateProductException(requesterId, productId);
+      throw new CustomerHasNoRulesToDeleteProductException(requesterId, productId);
     }
     try {
       productRepository.deleteById(productId);

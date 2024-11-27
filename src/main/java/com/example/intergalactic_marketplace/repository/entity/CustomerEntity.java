@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 public class CustomerEntity {
   @Id
   @GeneratedValue(generator = "customer_id_seq")
-  @SequenceGenerator(name = "customer_id_seq", sequenceName = "customer_id_seq")
+  @SequenceGenerator(name = "customer_id_seq", sequenceName = "customer_id_seq", allocationSize = 1)
   Long id;
 
   String name;

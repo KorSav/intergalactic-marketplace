@@ -1,43 +1,43 @@
 databaseChangeLog:
   - changeSet:
-    id: lab-3-2
-    author: Savelii.Korniiko
-    changes:
-      # Sequence for Customer ID
-      - createSequence:
-        sequenceName: customer_id_seq
-        incrementBy: 1 
+      id: lab-3-2
+      author: Savelii.Korniiko
+      changes:
+        # Sequence for Customer ID
+        - createSequence:
+            sequenceName: customer_id_seq
+            incrementBy: 1 
 
-      # Create Customer table
-      - createTable:
-        tableName: customer
-        columns:
-          - column:
-            name: id 
-            type: INT
-            constraint:
-              primaryKey: true
-              nullable: false
-          - column:
-            name: name
-            type: VARCHAR(50)
-            constraint:
-              nullable: false
-          - column:
-            name: address
-            type: VARCHAR(100)
-            constraint:
-              nullable: false
-          - column:
-            name: email
-            type: VARCHAR(100)
-            constraint:
-              nullable: false
-      - addUniqueConstraint:
-          tableName: customer
-          columnNames: name
-          constraintName: uq_customer_name
-      - addUniqueConstraint:
-          tableName: customer
-          columnNames: email
-          constraintName: uq_customer_email
+        # Create Customer table
+        - createTable:
+            tableName: customer
+            columns:
+              - column:
+                  name: id 
+                  type: INT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: address
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: customer
+            columnNames: name
+            constraintName: uq_customer_name
+        - addUniqueConstraint:
+            tableName: customer
+            columnNames: email
+            constraintName: uq_customer_email
