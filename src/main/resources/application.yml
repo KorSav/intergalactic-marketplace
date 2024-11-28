@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: intergalactic-marketplace
+
+application:
+  feature:
+    toggles:
+      cosmoCats: true
+      kittyProducts: false

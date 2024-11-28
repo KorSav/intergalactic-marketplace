@@ -1,5 +1,6 @@
 package com.example.intergalactic_marketplace.web;
 
+import com.example.intergalactic_marketplace.featureToggle.exception.FeatureNotAvailableException;
 import com.example.intergalactic_marketplace.service.exception.CustomerHasNoRulesToDeleteProductException;
 import com.example.intergalactic_marketplace.service.exception.CustomerHasNoRulesToUpdateProductException;
 import com.example.intergalactic_marketplace.service.exception.CustomerNotFoundException;
@@ -72,6 +73,14 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
     log.info("Customer has no rules to update product exception raised");
     return ProblemDetailsUtils.getErrorResponseEntity(
         HttpStatus.FORBIDDEN, "customer-has-no-rules", request, ex.getMessage());
+  }
+
+  @ExceptionHandler(FeatureNotAvailableException.class)
+  ResponseEntity<Map<String, Object>> handleFeatureNotAvailableException(
+      FeatureNotAvailableException ex, WebRequest request) {
+    log.info("Feature is not enabled");
+    return ProblemDetailsUtils.getErrorResponseEntity(
+        HttpStatus.NOT_FOUND, "feature-disabled", request, ex.getMessage());
   }
 
   @Override

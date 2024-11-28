@@ -1,0 +1,12 @@
+{"properties": [
+  {
+    "name": "application.feature.toggles[cosmoCats]",
+    "type": "java.lang.Boolean",
+    "description": "A description for 'application.feature.toggles[cosmoCats]'"
+  },
+  {
+    "name": "application.feature.toggles[kittyProducts]",
+    "type": "java.lang.Boolean",
+    "description": "A description for 'application.feature.toggles[kittyProducts]'"
+  }
+]}
