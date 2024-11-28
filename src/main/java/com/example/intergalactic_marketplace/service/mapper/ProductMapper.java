@@ -8,6 +8,7 @@ import com.example.intergalactic_marketplace.repository.entity.ProductEntity;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -38,13 +39,17 @@ public interface ProductMapper {
   @Mapping(target = "category", source = "category")
   Product fromProductDto(ProductDto productDto);
 
-  @Mapping(target = "id", expression = "java(java.util.UUID.randomUUID())")
+  @Mapping(target = "id", expression = "java(handleId(product.getId()))")
   @Mapping(target = "name", source = "name")
   @Mapping(target = "description", source = "description")
   @Mapping(target = "price", source = "price")
   @Mapping(target = "category", source = "category")
   @Mapping(target = "owner", source = "owner")
   ProductEntity toProductEntity(Product product);
+
+  default UUID handleId(UUID id) {
+    return id != null ? id : UUID.randomUUID();
+  }
 
   default List<Product> fromProductEntities(Iterator<ProductEntity> productEntityIterator) {
     List<Product> result = new ArrayList<>();

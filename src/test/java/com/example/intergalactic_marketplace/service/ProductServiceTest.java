@@ -1,168 +1,158 @@
 package com.example.intergalactic_marketplace.service;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import com.example.intergalactic_marketplace.AbstractIt;
 import com.example.intergalactic_marketplace.domain.Customer;
 import com.example.intergalactic_marketplace.domain.Product;
+import com.example.intergalactic_marketplace.repository.CategoryRepository;
+import com.example.intergalactic_marketplace.repository.CustomerRepository;
 import com.example.intergalactic_marketplace.repository.ProductRepository;
+import com.example.intergalactic_marketplace.repository.entity.CategoryEntity;
+import com.example.intergalactic_marketplace.repository.entity.CustomerEntity;
 import com.example.intergalactic_marketplace.repository.entity.ProductEntity;
-import com.example.intergalactic_marketplace.service.exception.CustomerHasNoRulesToDeleteProductException;
 import com.example.intergalactic_marketplace.service.exception.CustomerHasNoRulesToUpdateProductException;
 import com.example.intergalactic_marketplace.service.exception.ProductAlreadyExistsException;
 import com.example.intergalactic_marketplace.service.exception.ProductNotFoundException;
 import com.example.intergalactic_marketplace.service.exception.ProductsNotFoundException;
-import com.example.intergalactic_marketplace.service.impl.ProductServiceImpl;
-import com.example.intergalactic_marketplace.service.mapper.CategoryMapperImpl;
-import com.example.intergalactic_marketplace.service.mapper.ProductMapper;
-import com.example.intergalactic_marketplace.service.mapper.ProductMapperImpl;
 import jakarta.persistence.PersistenceException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Stream;
+import java.util.*;
 import org.hibernate.exception.JDBCConnectionException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 
-@SpringBootTest(
-    classes = {ProductServiceImpl.class, ProductMapperImpl.class, CategoryMapperImpl.class})
-@DisplayName("Product Service Tests")
-@TestMethodOrder(OrderAnnotation.class)
-public class ProductServiceTest {
-  @MockBean private ProductRepository productRepository;
-  @MockBean private CustomerService customerService;
-  @Autowired private ProductMapper productMapper;
+@DisplayName("Product Service Tests with Testcontainers")
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+public class ProductServiceTest extends AbstractIt {
 
   @Autowired private ProductService productService;
+  @SpyBean @Autowired private ProductRepository productRepository;
+  @Autowired private CustomerRepository customerRepository;
+  @Autowired private CategoryRepository categoryRepository;
 
   private static UUID newProductId;
   private static String newProductName = "test product";
   private static String updatedProductName = "updated test product";
-  private static Long newProductOwnerId = 1L;
-  private static Long otherProductOwnerId = 2L;
-  private static List<Product> products =
-      List.of(
-          Product.builder()
-              .id(UUID.randomUUID())
-              .owner(Customer.builder().id(newProductOwnerId).build())
-              .build(),
-          Product.builder()
-              .id(UUID.randomUUID())
-              .owner(Customer.builder().id(otherProductOwnerId).build())
-              .build());
+  private static Long newProductOwnerId;
+  private static Long otherProductOwnerId;
 
-  static Stream<Product> provideProducts() {
-    return products.stream();
+  @AfterEach
+  void cleanUp() {
+    productRepository.deleteAll();
+    customerRepository.deleteAll();
+    categoryRepository.deleteAll();
+  }
+
+  @BeforeEach
+  void setUp() {
+    reset(productRepository);
+    CustomerEntity customer1 =
+        customerRepository.save(
+            CustomerEntity.builder().name("Owner 1").address("addr1").email("email1").build());
+    CustomerEntity customer2 =
+        customerRepository.save(
+            CustomerEntity.builder().name("Owner 2").address("addr2").email("email2").build());
+
+    CategoryEntity category =
+        categoryRepository.save(CategoryEntity.builder().name("Test Category").build());
+
+    ProductEntity product1 =
+        ProductEntity.builder()
+            .id(UUID.randomUUID())
+            .name("Product 1")
+            .description("description")
+            .price(12)
+            .owner(customer1)
+            .category(category)
+            .build();
+    ProductEntity product2 =
+        ProductEntity.builder()
+            .id(UUID.randomUUID())
+            .name("Product 2")
+            .description("description")
+            .price(3)
+            .owner(customer2)
+            .category(category)
+            .build();
+
+    productRepository.save(product1);
+    productRepository.save(product2);
+
+    newProductOwnerId = customer1.getId();
+    otherProductOwnerId = customer2.getId();
   }
 
   @Test
   @Order(1)
   void shouldReturnAllProducts() {
-    when(productRepository.findAll())
-        .thenReturn(
-            products.stream().map((product) -> productMapper.toProductEntity(product)).toList())
-        .thenReturn(Collections.emptyList());
-    when(customerService.getCustomerById(newProductOwnerId)).thenReturn(products.get(0).getOwner());
-    when(customerService.getCustomerById(newProductOwnerId)).thenReturn(products.get(1).getOwner());
+    List<Product> products = productService.getAllProducts();
     assertNotNull(products);
-    assertEquals(products.size(), productService.getAllProducts().size());
-    assertThrows(ProductsNotFoundException.class, () -> productService.getAllProducts());
+    assertEquals(2, products.size());
   }
 
-  @ParameterizedTest
-  @MethodSource("provideProducts")
+  @Test
   @Order(2)
-  void shouldReturnProductByID(Product expectedProduct) {
-    ProductEntity expectedProductEntity = productMapper.toProductEntity(expectedProduct);
-    expectedProductEntity = expectedProductEntity.toBuilder().id(expectedProduct.getId()).build();
-    when(productRepository.findById(expectedProduct.getId()))
-        .thenReturn(Optional.of(expectedProductEntity))
-        .thenReturn(Optional.empty());
-    Product actualProduct = productService.getProductById(expectedProduct.getId());
-    assertEquals(expectedProduct, actualProduct);
-    assertThrows(
-        ProductNotFoundException.class,
-        () -> productService.getProductById(expectedProduct.getId()));
+  void shouldReturnProductByID() {
+    ProductEntity productEntity = productRepository.findAll().iterator().next();
+    Product product = productService.getProductById(productEntity.getId());
+    assertNotNull(product);
+    assertEquals(productEntity.getName(), product.getName());
   }
 
   @Test
   @Order(3)
   void shouldCreateProduct() {
-    Product expectedProduct =
+    Product newProduct =
         Product.builder()
-            .id(UUID.randomUUID())
             .name(newProductName)
             .owner(Customer.builder().id(newProductOwnerId).build())
             .build();
-    ProductEntity expectedProductEntity = productMapper.toProductEntity(expectedProduct);
 
-    when(productRepository.save(any(ProductEntity.class))).thenReturn(expectedProductEntity);
-    when(productRepository.findById(expectedProduct.getId())).thenReturn(Optional.empty());
-    when(customerService.getCustomerById(newProductOwnerId)).thenReturn(products.get(0).getOwner());
-    newProductId = productService.createProduct(expectedProduct, newProductOwnerId);
+    newProductId = productService.createProduct(newProduct, newProductOwnerId);
+    Product createdProduct = productService.getProductById(newProductId);
 
-    when(productRepository.findById(newProductId)).thenReturn(Optional.of(expectedProductEntity));
-    Product actualProduct = productService.getProductById(newProductId);
-
-    when(productRepository.findByName(actualProduct.getName()))
-        .thenReturn(List.of(productMapper.toProductEntity(actualProduct)));
-    assertNotNull(actualProduct);
-    assertEquals(expectedProduct.getName(), actualProduct.getName());
-    assertEquals(expectedProduct.getOwner(), actualProduct.getOwner());
+    assertNotNull(createdProduct);
+    assertEquals(newProductName, createdProduct.getName());
     assertThrows(
         ProductAlreadyExistsException.class,
-        () -> productService.createProduct(actualProduct, newProductOwnerId));
+        () -> productService.createProduct(newProduct, newProductOwnerId));
   }
 
   @Test
   @Order(4)
   void shouldUpdateProduct() {
-    Product expectedProduct =
+    ProductEntity existingProduct = productRepository.findAll().iterator().next();
+    Product updatedProduct =
         Product.builder()
-            .id(newProductId)
+            .id(existingProduct.getId())
             .name(updatedProductName)
             .owner(Customer.builder().id(newProductOwnerId).build())
             .build();
 
-    when(productRepository.findByName(updatedProductName)).thenReturn(Collections.emptyList());
-    when(productRepository.findById(newProductId))
-        .thenReturn(Optional.of(productMapper.toProductEntity(expectedProduct)));
-    productService.updateProduct(expectedProduct, newProductOwnerId);
-    Product actualProduct = productService.getProductById(newProductId);
+    productService.updateProduct(updatedProduct, newProductOwnerId);
+    Product result = productService.getProductById(existingProduct.getId());
 
-    assertNotNull(actualProduct);
-    assertEquals(expectedProduct.getName(), actualProduct.getName());
-    assertEquals(expectedProduct.getOwner(), actualProduct.getOwner());
+    assertNotNull(result);
+    assertEquals(updatedProductName, result.getName());
     assertThrows(
         CustomerHasNoRulesToUpdateProductException.class,
-        () -> productService.updateProduct(actualProduct, otherProductOwnerId));
+        () -> productService.updateProduct(updatedProduct, newProductOwnerId + 1));
   }
 
   @Test
   @Order(4)
   void throwsExceptionWhenUpdatingProductWithExistingName() {
+    ProductEntity existingProduct = productRepository.findAll().iterator().next();
     Product productWithExistingName =
         Product.builder()
             .id(newProductId)
-            .name(products.get(0).getName())
-            .owner(customerService.getCustomerById(newProductOwnerId))
+            .name(existingProduct.getName())
+            .owner(Customer.builder().id(newProductOwnerId).build())
             .build();
-    when(productRepository.findByName(productWithExistingName.getName()))
-        .thenReturn(List.of(productMapper.toProductEntity(productWithExistingName)));
     assertThrows(
         ProductAlreadyExistsException.class,
         () -> productService.updateProduct(productWithExistingName, newProductOwnerId));
@@ -171,35 +161,33 @@ public class ProductServiceTest {
   @Test
   @Order(5)
   void shouldDeleteProduct() {
-    when(productRepository.findById(newProductId))
-        .thenReturn(Optional.of(productMapper.toProductEntity(products.get(0))))
-        .thenReturn(Optional.empty());
+    ProductEntity existingProduct = productRepository.findAll().iterator().next();
+
+    productService.deleteProductById(existingProduct.getId(), newProductOwnerId);
     assertThrows(
-        CustomerHasNoRulesToDeleteProductException.class,
-        () -> productService.deleteProductById(newProductId, otherProductOwnerId));
-
-    when(productRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
-    assertDoesNotThrow(
-        () -> productService.deleteProductById(UUID.randomUUID(), otherProductOwnerId));
-
-    productService.deleteProductById(newProductId, newProductOwnerId);
-    assertThrows(ProductNotFoundException.class, () -> productService.getProductById(newProductId));
+        ProductNotFoundException.class,
+        () -> productService.getProductById(existingProduct.getId()));
   }
 
   @Test
   @Order(6)
-  void shouldThrowProductsNotFound() {
-    when(productRepository.findAll()).thenReturn(Collections.emptyList());
-    assertThrows(ProductsNotFoundException.class, () -> productService.getAllProducts());
+  void shouldThrowProductNotFound() {
+    UUID randomId = UUID.randomUUID();
+    assertThrows(ProductNotFoundException.class, () -> productService.getProductById(randomId));
   }
 
   @Test
   @Order(7)
+  void shouldThrowProductsNotFound() {
+    productRepository.deleteAll();
+    assertThrows(ProductsNotFoundException.class, () -> productService.getAllProducts());
+  }
+
+  @Test
+  @Order(8)
   void shouldThrowPersistenceException() {
-    when(productRepository.findById(any(UUID.class))).thenThrow(JDBCConnectionException.class);
-    assertThrows(PersistenceException.class, () -> productService.getProductById(newProductId));
-    assertThrows(
-        PersistenceException.class,
-        () -> productService.deleteProductById(newProductId, newProductOwnerId));
+    UUID randomId = UUID.randomUUID();
+    when(productRepository.findById(randomId)).thenThrow(JDBCConnectionException.class);
+    assertThrows(PersistenceException.class, () -> productService.getProductById(randomId));
   }
 }

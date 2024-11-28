@@ -45,7 +45,7 @@ databaseChangeLog:
             constraintName: fk_product_customer
         - addForeignKeyConstraint:
             baseTableName: product
-            baseColumnNames: owner_id
+            baseColumnNames: category_id
             referencedTableName: category
             referencedColumnNames: id
             constraintName: fk_product_category

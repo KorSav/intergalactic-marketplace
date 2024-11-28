@@ -9,4 +9,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ProductRepository extends CrudRepository<ProductEntity, UUID> {
   List<ProductEntity> findByName(String name);
+
+  List<ProductEntity> findByNameAndIdIsNot(String name, UUID id);
 }

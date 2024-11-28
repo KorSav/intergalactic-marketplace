@@ -47,6 +47,7 @@ public abstract class AbstractIt {
 
   @AfterAll
   static void tearDown() {
+    POSTGRES_CONTAINER.stop();
     wireMockServer.stop();
   }
 }

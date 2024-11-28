@@ -90,7 +90,8 @@ public class ProductServiceImpl implements ProductService {
   public void updateProduct(Product product, Long requesterId) {
     List<ProductEntity> existingProductsSameName = null;
     try {
-      existingProductsSameName = productRepository.findByName(product.getName());
+      existingProductsSameName =
+          productRepository.findByNameAndIdIsNot(product.getName(), product.getId());
     } catch (Exception e) {
       throw new PersistenceException(e);
     }
