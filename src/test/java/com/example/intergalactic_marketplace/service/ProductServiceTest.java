@@ -31,7 +31,6 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 @DisplayName("Product Service Tests with Testcontainers")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ProductServiceTest extends AbstractIt {
-
   @Autowired private ProductService productService;
   @SpyBean @Autowired private ProductRepository productRepository;
   @Autowired private CustomerRepository customerRepository;
@@ -55,10 +54,10 @@ public class ProductServiceTest extends AbstractIt {
   @BeforeEach
   void setUp() {
     reset(productRepository);
-    CustomerEntity customer1 =
+    CustomerEntity customerCreate =
         customerRepository.save(
             CustomerEntity.builder().name("Owner 1").address("addr1").email("email1").build());
-    CustomerEntity customer2 =
+    CustomerEntity customerUpdate =
         customerRepository.save(
             CustomerEntity.builder().name("Owner 2").address("addr2").email("email2").build());
 
@@ -71,7 +70,7 @@ public class ProductServiceTest extends AbstractIt {
             .name("Product 1")
             .description("description")
             .price(12)
-            .owner(customer1)
+            .owner(customerCreate)
             .category(category)
             .build();
     ProductEntity product2 =
@@ -80,15 +79,15 @@ public class ProductServiceTest extends AbstractIt {
             .name("Product 2")
             .description("description")
             .price(3)
-            .owner(customer2)
+            .owner(customerUpdate)
             .category(category)
             .build();
 
     productRepository.save(product1);
     productRepository.save(product2);
 
-    newProductOwnerId = customer1.getId();
-    otherProductOwnerId = customer2.getId();
+    newProductOwnerId = customerCreate.getId();
+    otherProductOwnerId = customerUpdate.getId();
   }
 
   @Test
@@ -147,7 +146,7 @@ public class ProductServiceTest extends AbstractIt {
     Product revertedProduct = updatedProduct.toBuilder().name(oldProductName).build();
     assertThrows(
         CustomerHasNoRulesToUpdateProductException.class,
-        () -> productService.updateProduct(revertedProduct, newProductOwnerId + 1));
+        () -> productService.updateProduct(revertedProduct, otherProductOwnerId));
   }
 
   @Test
