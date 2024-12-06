@@ -5,8 +5,6 @@ import com.example.intergalactic_marketplace.dto.Product.ProductDto;
 import com.example.intergalactic_marketplace.dto.Product.ProductEntry;
 import com.example.intergalactic_marketplace.dto.Product.ProductListDto;
 import com.example.intergalactic_marketplace.repository.entity.ProductEntity;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import org.mapstruct.Mapper;
@@ -51,14 +49,7 @@ public interface ProductMapper {
     return id != null ? id : UUID.randomUUID();
   }
 
-  default List<Product> fromProductEntities(Iterator<ProductEntity> productEntityIterator) {
-    List<Product> result = new ArrayList<>();
-    productEntityIterator.forEachRemaining(
-        (productEntity) -> {
-          result.add(fromProductEntity(productEntity));
-        });
-    return result;
-  }
+  List<Product> fromProductEntities(List<ProductEntity> productEntities);
 
   @Mapping(target = "id", source = "id")
   @Mapping(target = "name", source = "name")

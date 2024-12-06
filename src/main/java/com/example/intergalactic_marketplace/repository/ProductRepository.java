@@ -4,11 +4,11 @@ import com.example.intergalactic_marketplace.repository.entity.ProductEntity;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.ListCrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ProductRepository extends CrudRepository<ProductEntity, UUID> {
+public interface ProductRepository extends ListCrudRepository<ProductEntity, UUID> {
   @Query("select p from ProductEntity p where p.name=:name and p.category.name=:categoryName")
   Optional<ProductEntity> findByNameAndCategoryName(String name, String categoryName);
 }

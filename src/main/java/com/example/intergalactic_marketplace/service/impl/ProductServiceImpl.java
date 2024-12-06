@@ -13,7 +13,6 @@ import com.example.intergalactic_marketplace.service.exception.ProductNotFoundEx
 import com.example.intergalactic_marketplace.service.exception.ProductsNotFoundException;
 import com.example.intergalactic_marketplace.service.mapper.ProductMapper;
 import jakarta.persistence.PersistenceException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -60,13 +59,13 @@ public class ProductServiceImpl implements ProductService {
   @Override
   @Transactional
   public List<Product> getAllProducts() {
-    Iterator<ProductEntity> productEntities = null;
+    List<ProductEntity> productEntities = null;
     try {
-      productEntities = productRepository.findAll().iterator();
+      productEntities = productRepository.findAll();
     } catch (Exception e) {
       throw new PersistenceException(e);
     }
-    if (!productEntities.hasNext()) {
+    if (productEntities.isEmpty()) {
       throw new ProductsNotFoundException();
     }
     return productMapper.fromProductEntities(productEntities);
