@@ -10,8 +10,3 @@ services:
       POSTGRES_DB: intergalactic_marketplace
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-volumes:
-  postgres_data:
