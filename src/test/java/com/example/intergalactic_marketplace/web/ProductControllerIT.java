@@ -1,8 +1,7 @@
 package com.example.intergalactic_marketplace.web;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.reset;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -12,58 +11,88 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.example.intergalactic_marketplace.config.MappersTestConfiguration;
+import com.example.intergalactic_marketplace.AbstractIt;
 import com.example.intergalactic_marketplace.domain.Category;
 import com.example.intergalactic_marketplace.domain.Customer;
 import com.example.intergalactic_marketplace.domain.Product;
 import com.example.intergalactic_marketplace.dto.Product.ProductDto;
+import com.example.intergalactic_marketplace.repository.CategoryRepository;
+import com.example.intergalactic_marketplace.repository.CustomerRepository;
+import com.example.intergalactic_marketplace.repository.ProductRepository;
+import com.example.intergalactic_marketplace.repository.entity.CategoryEntity;
+import com.example.intergalactic_marketplace.repository.entity.CustomerEntity;
+import com.example.intergalactic_marketplace.repository.entity.ProductEntity;
 import com.example.intergalactic_marketplace.service.ProductService;
-import com.example.intergalactic_marketplace.service.exception.CustomerHasNoRulesToDeleteProductException;
-import com.example.intergalactic_marketplace.service.exception.ProductNotFoundException;
-import com.example.intergalactic_marketplace.service.exception.ProductsNotFoundException;
+import com.example.intergalactic_marketplace.service.mapper.CategoryMapper;
+import com.example.intergalactic_marketplace.service.mapper.CustomerMapper;
 import com.example.intergalactic_marketplace.service.mapper.ProductMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.UUID;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(ProductController.class)
-@Import({MappersTestConfiguration.class, ExceptionTranslator.class})
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@AutoConfigureMockMvc
 @DisplayName("Product Controller IT")
-public class ProductControllerIT {
-  @MockBean private ProductService productService;
+public class ProductControllerIT extends AbstractIt {
+  @SpyBean private ProductService productService;
+
+  @Autowired private ProductRepository productRepository;
+  @Autowired private CategoryRepository categoryRepository;
+  @Autowired private CustomerRepository customerRepository;
 
   @Autowired private MockMvc mockMvc;
 
-  @Autowired private ProductMapper productMapper;
+  @Autowired private ObjectMapper objectMapper;
 
-  private static Category category = Category.builder().id(1).name("Space Food").build();
-  private static Customer customer =
-      Customer.builder()
-          .id(1L)
-          .name("John Doe")
-          .address("123 Space St")
-          .email("john.doe@example.com")
-          .build();
-  private static Product product =
-      Product.builder()
-          .id(UUID.randomUUID())
-          .name("Galaxy Fish Treats")
-          .description("Delicious fish snacks for your interstellar feline friend.")
-          .price(15)
-          .category(category)
-          .owner(customer)
-          .build();
+  @Autowired private ProductMapper productMapper;
+  @Autowired private CategoryMapper categoryMapper;
+  @Autowired private CustomerMapper customerMapper;
+
+  @BeforeEach
+  void setUp() {
+    reset(productService);
+    productRepository.deleteAll();
+  }
+
+  private CategoryEntity categoryEntity;
+  private CustomerEntity customerEntity;
+  private ProductEntity productEntity;
+  private Category category;
+  private Customer customer;
+  private Product product;
+
+  @BeforeAll
+  void init() {
+    categoryEntity = CategoryEntity.builder().name("Space Food").build();
+    customerEntity =
+        CustomerEntity.builder()
+            .name("John Doe")
+            .address("123 Space St")
+            .email("john.doe@example.com")
+            .build();
+    productEntity =
+        ProductEntity.builder()
+            .id(UUID.randomUUID())
+            .name("Galaxy Fish Treats")
+            .description("Delicious fish snacks for your interstellar feline friend.")
+            .price(15)
+            .category(categoryEntity)
+            .owner(customerEntity)
+            .build();
+  }
 
   private static Stream<Arguments> provideWrongNames() {
     return Stream.of(
@@ -85,6 +114,8 @@ public class ProductControllerIT {
   @ParameterizedTest
   @MethodSource("provideWrongNames")
   void shouldThrowInvalidNameException(String productName, String partOfErrorMsg) throws Exception {
+    seedDb();
+    mapDomainFromEntity();
     Product localProduct = product.toBuilder().name(productName).build();
     testInvalidProductField(localProduct, "name", partOfErrorMsg);
   }
@@ -93,6 +124,8 @@ public class ProductControllerIT {
   @MethodSource("provideWrongDescriptions")
   void shouldThrowInvalidDescriptionException(String productDescription, String partOfErrorMsg)
       throws Exception {
+    seedDb();
+    mapDomainFromEntity();
     Product localProduct = product.toBuilder().description(productDescription).build();
     testInvalidProductField(localProduct, "description", partOfErrorMsg);
   }
@@ -100,13 +133,16 @@ public class ProductControllerIT {
   @ParameterizedTest
   @MethodSource("provideWrongPrices")
   void shouldThrowInvalidPriceException(int productPrice, String partOfErrorMsg) throws Exception {
+    seedDb();
+    mapDomainFromEntity();
     Product localProduct = product.toBuilder().price(productPrice).build();
     testInvalidProductField(localProduct, "price", partOfErrorMsg);
   }
 
   @Test
   void shouldCreateValidProduct() throws Exception {
-    when(productService.createProduct(product, customer.getId())).thenReturn(product.getId());
+    seedDbWithoutProduct();
+    mapDomainFromEntity();
     ProductDto productDto = productMapper.toProductDto(product);
     mockMvc
         .perform(
@@ -122,7 +158,8 @@ public class ProductControllerIT {
 
   @Test
   void shouldReturnProduct() throws Exception {
-    when(productService.getProductById(product.getId())).thenReturn(product);
+    seedDb();
+    mapDomainFromEntity();
     mockMvc
         .perform(get("/v1/products/{productId}", product.getId()))
         .andDo(print())
@@ -134,9 +171,9 @@ public class ProductControllerIT {
   }
 
   @Test
-  void shouldThrowProductNotFoun() throws Exception {
-    when(productService.getProductById(product.getId()))
-        .thenThrow(new ProductNotFoundException(product.getId()));
+  void shouldThrowProductNotFound() throws Exception {
+    seedDbWithoutProduct();
+    mapDomainFromEntity();
     String path = "/v1/products/" + product.getId().toString();
     mockMvc
         .perform(get(path))
@@ -149,7 +186,8 @@ public class ProductControllerIT {
 
   @Test
   void shouldThrowProductsNotFound() throws Exception {
-    when(productService.getAllProducts()).thenThrow(new ProductsNotFoundException());
+    seedDbWithoutProduct();
+    mapDomainFromEntity();
     String path = "/v1/products";
     mockMvc
         .perform(get(path))
@@ -162,12 +200,11 @@ public class ProductControllerIT {
 
   @Test
   void shouldThrowCustomerHasNoRules() throws Exception {
-    doThrow(new CustomerHasNoRulesToDeleteProductException(customer.getId(), product.getId()))
-        .when(productService)
-        .deleteProductById(product.getId(), customer.getId());
+    seedDb();
+    mapDomainFromEntity();
     String path = "/v1/products/" + product.getId().toString();
     mockMvc
-        .perform(delete(path).header("customerId", customer.getId()))
+        .perform(delete(path).header("customerId", -1L))
         .andDo(print())
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.path").value(path))
@@ -178,12 +215,11 @@ public class ProductControllerIT {
   private void testInvalidProductField(
       Product product, String invalidFieldName, String partOfErrorMsg) throws Exception {
     ProductDto productDto = productMapper.toProductDto(product);
-    when(productService.createProduct(product, customer.getId())).thenReturn(product.getId());
     mockMvc
         .perform(
             post("/v1/products")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(new ObjectMapper().writeValueAsString(productDto))
+                .content(objectMapper.writeValueAsString(productDto))
                 .header("customerId", customer.getId().toString()))
         .andDo(print())
         .andExpect(status().isBadRequest())
@@ -193,5 +229,25 @@ public class ProductControllerIT {
         .andExpect(jsonPath("$.invalidParams").exists())
         .andExpect(jsonPath("$.invalidParams[0].fieldName").value(invalidFieldName))
         .andExpect(jsonPath("$.invalidParams[0].reason").value(containsString(partOfErrorMsg)));
+  }
+
+  private void seedDb() {
+    categoryEntity = categoryRepository.save(categoryEntity);
+    customerEntity = customerRepository.save(customerEntity);
+
+    productEntity.setOwner(customerEntity);
+    productEntity.setCategory(categoryEntity);
+    productRepository.save(productEntity);
+  }
+
+  private void seedDbWithoutProduct() {
+    categoryEntity = categoryRepository.save(categoryEntity);
+    customerEntity = customerRepository.save(customerEntity);
+  }
+
+  private void mapDomainFromEntity() {
+    category = categoryMapper.fromCategoryEntity(categoryEntity);
+    customer = customerMapper.fromCustomerEntity(customerEntity);
+    product = productMapper.fromProductEntity(productEntity);
   }
 }

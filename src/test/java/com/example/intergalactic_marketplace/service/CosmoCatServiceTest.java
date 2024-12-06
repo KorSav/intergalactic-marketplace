@@ -2,6 +2,7 @@ package com.example.intergalactic_marketplace.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
 import com.example.intergalactic_marketplace.config.FeatureToggleProperties;
 import com.example.intergalactic_marketplace.featureToggle.FeatureToggleExtension;
@@ -11,8 +12,11 @@ import com.example.intergalactic_marketplace.featureToggle.annotation.DisabledFe
 import com.example.intergalactic_marketplace.featureToggle.annotation.EnabledFeatureToggle;
 import com.example.intergalactic_marketplace.featureToggle.aspect.FeatureToggleAspect;
 import com.example.intergalactic_marketplace.featureToggle.exception.FeatureNotAvailableException;
+import com.example.intergalactic_marketplace.repository.CustomerRepository;
+import com.example.intergalactic_marketplace.repository.entity.CustomerEntity;
 import com.example.intergalactic_marketplace.service.impl.CosmoCatServiceImpl;
 import com.example.intergalactic_marketplace.service.impl.CustomerServiceImpl;
+import com.example.intergalactic_marketplace.service.mapper.CustomerMapperImpl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,17 +34,19 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
       CosmoCatServiceImpl.class,
       CustomerServiceImpl.class,
       FeatureToggleService.class,
-      FeatureToggleAspect.class
+      FeatureToggleAspect.class,
+      CustomerMapperImpl.class
     })
 @DisplayName("Cosmo Cat Service Tests")
 @ExtendWith(FeatureToggleExtension.class)
 @EnableAspectJAutoProxy
 public class CosmoCatServiceTest {
+  @MockBean private CustomerRepository customerRepository;
   @Autowired private CosmoCatService cosmoCatService;
 
   @MockBean private FeatureToggleProperties featureToggleProperties;
 
-  private static List<String> catsNames = List.of("John Doe", "Jane Smith");
+  private static List<String> catsNames = List.of("John Doe");
 
   @BeforeEach
   private void setUp() {
@@ -60,6 +66,8 @@ public class CosmoCatServiceTest {
   @Test
   @EnabledFeatureToggle(FeatureToggles.COSMO_CATS)
   void shouldReturnNames() {
+    CustomerEntity testEntity = CustomerEntity.builder().id(1L).name(catsNames.get(0)).build();
+    when(customerRepository.findAll()).thenReturn(List.of(testEntity));
     assertEquals(catsNames, cosmoCatService.getCosmoCats());
   }
 }
