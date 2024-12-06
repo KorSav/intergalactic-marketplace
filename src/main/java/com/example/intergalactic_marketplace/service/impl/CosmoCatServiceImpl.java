@@ -24,7 +24,7 @@ public class CosmoCatServiceImpl implements CosmoCatService {
 
   @Override
   @FeatureToggle(FeatureToggles.COSMO_CATS)
-  @Transactional
+  @Transactional(readOnly = true)
   public List<String> getCosmoCats() {
     try {
       Customer customer1 =
