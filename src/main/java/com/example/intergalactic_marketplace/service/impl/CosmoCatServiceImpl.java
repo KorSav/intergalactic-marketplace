@@ -1,11 +1,9 @@
 package com.example.intergalactic_marketplace.service.impl;
 
-import com.example.intergalactic_marketplace.domain.Customer;
 import com.example.intergalactic_marketplace.featureToggle.FeatureToggles;
 import com.example.intergalactic_marketplace.featureToggle.annotation.FeatureToggle;
 import com.example.intergalactic_marketplace.repository.CustomerRepository;
 import com.example.intergalactic_marketplace.service.CosmoCatService;
-import com.example.intergalactic_marketplace.service.exception.CustomerNotFoundException;
 import com.example.intergalactic_marketplace.service.mapper.CustomerMapper;
 import jakarta.persistence.PersistenceException;
 import java.util.List;
@@ -27,15 +25,9 @@ public class CosmoCatServiceImpl implements CosmoCatService {
   @Transactional(readOnly = true)
   public List<String> getCosmoCats() {
     try {
-      Customer customer1 =
-          mapper.fromCustomerEntity(
-              repository
-                  .findById(1L)
-                  .orElseThrow(
-                      () -> {
-                        throw new CustomerNotFoundException(1L);
-                      }));
-      return List.of(customer1.getName());
+      return mapper.fromCustomerEntities(repository.findAll()).stream()
+          .map(c -> c.getName())
+          .toList();
     } catch (Exception e) {
       throw new PersistenceException(e);
     }

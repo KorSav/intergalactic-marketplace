@@ -2,7 +2,6 @@ package com.example.intergalactic_marketplace.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.example.intergalactic_marketplace.config.FeatureToggleProperties;
@@ -21,7 +20,6 @@ import com.example.intergalactic_marketplace.service.mapper.CustomerMapperImpl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -69,7 +67,7 @@ public class CosmoCatServiceTest {
   @EnabledFeatureToggle(FeatureToggles.COSMO_CATS)
   void shouldReturnNames() {
     CustomerEntity testEntity = CustomerEntity.builder().id(1L).name(catsNames.get(0)).build();
-    when(customerRepository.findById(any(Long.class))).thenReturn(Optional.of(testEntity));
+    when(customerRepository.findAll()).thenReturn(List.of(testEntity));
     assertEquals(catsNames, cosmoCatService.getCosmoCats());
   }
 }

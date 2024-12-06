@@ -35,6 +35,8 @@ public interface CustomerMapper {
 
   List<CustomerEntry> toCustomerEntries(List<Customer> customers);
 
+  List<Customer> fromCustomerEntities(List<CustomerEntity> customers);
+
   @Mapping(target = "id", source = "id")
   @Mapping(target = "name", source = "customer.name")
   @Mapping(target = "address", source = "customer.address")
