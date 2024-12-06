@@ -35,13 +35,15 @@ public class ProductServiceImpl implements ProductService {
   @Transactional
   public UUID createProduct(Product product, Long requesterId) {
     Customer customer = customerService.getCustomerById(requesterId);
-    List<ProductEntity> sameProductEntityList = null;
+    Optional<ProductEntity> sameProductEntity = null;
     try {
-      sameProductEntityList = productRepository.findByName(product.getName());
+      sameProductEntity =
+          productRepository.findByNameAndCategoryName(
+              product.getName(), product.getCategory().getName());
     } catch (Exception e) {
       throw new PersistenceException(e);
     }
-    if (!sameProductEntityList.isEmpty()) {
+    if (sameProductEntity.isPresent()) {
       throw new ProductAlreadyExistsException(product.getName());
     }
     try {
@@ -88,14 +90,18 @@ public class ProductServiceImpl implements ProductService {
   @Override
   @Transactional
   public void updateProduct(Product product, Long requesterId) {
-    List<ProductEntity> existingProductsSameName = null;
+    Optional<ProductEntity> existingProductSameName = Optional.empty();
     try {
-      existingProductsSameName =
-          productRepository.findByNameAndIdIsNot(product.getName(), product.getId());
+      existingProductSameName =
+          productRepository.findByNameAndCategoryName(
+              product.getName(), product.getCategory().getName());
     } catch (Exception e) {
       throw new PersistenceException(e);
     }
-    if (!existingProductsSameName.isEmpty()) {
+    boolean isProductNameUnique =
+        existingProductSameName.isEmpty()
+            || existingProductSameName.get().getId() == product.getId();
+    if (!isProductNameUnique) {
       throw new ProductAlreadyExistsException(product.getName());
     }
     if (product.getOwner().getId() != requesterId) {

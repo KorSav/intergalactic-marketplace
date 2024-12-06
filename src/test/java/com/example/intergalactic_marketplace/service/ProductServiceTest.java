@@ -6,6 +6,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import com.example.intergalactic_marketplace.AbstractIt;
+import com.example.intergalactic_marketplace.domain.Category;
 import com.example.intergalactic_marketplace.domain.Customer;
 import com.example.intergalactic_marketplace.domain.Product;
 import com.example.intergalactic_marketplace.repository.CategoryRepository;
@@ -18,6 +19,8 @@ import com.example.intergalactic_marketplace.service.exception.CustomerHasNoRule
 import com.example.intergalactic_marketplace.service.exception.ProductAlreadyExistsException;
 import com.example.intergalactic_marketplace.service.exception.ProductNotFoundException;
 import com.example.intergalactic_marketplace.service.exception.ProductsNotFoundException;
+import com.example.intergalactic_marketplace.service.mapper.CategoryMapper;
+import com.example.intergalactic_marketplace.service.mapper.ProductMapper;
 import jakarta.persistence.PersistenceException;
 import java.util.*;
 import org.hibernate.exception.JDBCConnectionException;
@@ -33,6 +36,8 @@ public class ProductServiceTest extends AbstractIt {
   @SpyBean @Autowired private ProductRepository productRepository;
   @Autowired private CustomerRepository customerRepository;
   @Autowired private CategoryRepository categoryRepository;
+  @Autowired private ProductMapper productMapper;
+  @Autowired private CategoryMapper categoryMapper;
 
   private static UUID newProductId;
   private static String newProductName = "test product";
@@ -109,6 +114,8 @@ public class ProductServiceTest extends AbstractIt {
     Product newProduct =
         Product.builder()
             .name(newProductName)
+            .category(
+                categoryMapper.fromCategoryEntity(categoryRepository.findAll().iterator().next()))
             .owner(Customer.builder().id(newProductOwnerId).build())
             .build();
 
@@ -126,11 +133,10 @@ public class ProductServiceTest extends AbstractIt {
   @Order(4)
   void shouldUpdateProduct() {
     ProductEntity existingProduct = productRepository.findAll().iterator().next();
+    String oldProductName = existingProduct.getName();
     Product updatedProduct =
-        Product.builder()
-            .id(existingProduct.getId())
+        productMapper.fromProductEntity(existingProduct).toBuilder()
             .name(updatedProductName)
-            .owner(Customer.builder().id(newProductOwnerId).build())
             .build();
 
     productService.updateProduct(updatedProduct, newProductOwnerId);
@@ -138,9 +144,10 @@ public class ProductServiceTest extends AbstractIt {
 
     assertNotNull(result);
     assertEquals(updatedProductName, result.getName());
+    Product revertedProduct = updatedProduct.toBuilder().name(oldProductName).build();
     assertThrows(
         CustomerHasNoRulesToUpdateProductException.class,
-        () -> productService.updateProduct(updatedProduct, newProductOwnerId + 1));
+        () -> productService.updateProduct(revertedProduct, newProductOwnerId + 1));
   }
 
   @Test
@@ -151,6 +158,7 @@ public class ProductServiceTest extends AbstractIt {
         Product.builder()
             .id(newProductId)
             .name(existingProduct.getName())
+            .category(Category.builder().name(existingProduct.getCategory().getName()).build())
             .owner(Customer.builder().id(newProductOwnerId).build())
             .build();
     assertThrows(
