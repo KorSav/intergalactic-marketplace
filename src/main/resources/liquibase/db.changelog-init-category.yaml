@@ -6,7 +6,7 @@ databaseChangeLog:
         # Sequence for Category ID
         - createSequence:
             sequenceName: category_id_seq
-            incrementBy: 1 
+            incrementBy: 50 
 
         # Create Category table
         - createTable:

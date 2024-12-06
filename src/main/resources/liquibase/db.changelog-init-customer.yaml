@@ -6,7 +6,7 @@ databaseChangeLog:
         # Sequence for Customer ID
         - createSequence:
             sequenceName: customer_id_seq
-            incrementBy: 1 
+            incrementBy: 50 
 
         # Create Customer table
         - createTable:
