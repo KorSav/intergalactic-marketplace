@@ -9,6 +9,7 @@ import com.example.intergalactic_marketplace.service.exception.ProductNotFoundEx
 import com.example.intergalactic_marketplace.service.exception.ProductsNotFoundException;
 import com.example.intergalactic_marketplace.util.ProblemDetailsUtils;
 import com.example.intergalactic_marketplace.web.exception.ParamsViolationDetails;
+import jakarta.persistence.PersistenceException;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,14 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice
 @Slf4j
 public class ExceptionTranslator extends ResponseEntityExceptionHandler {
+
+  @ExceptionHandler(PersistenceException.class)
+  ResponseEntity<Map<String, Object>> handlePersistenceException(
+      PersistenceException ex, WebRequest request) {
+    log.info("Persistence exception is raised");
+    return ProblemDetailsUtils.getErrorResponseEntity(
+        HttpStatus.INTERNAL_SERVER_ERROR, "persistence-exception", request, ex.getMessage());
+  }
 
   @ExceptionHandler(ProductNotFoundException.class)
   ResponseEntity<Map<String, Object>> handleProductNotFoundException(

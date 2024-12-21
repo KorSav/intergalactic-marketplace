@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - include:
+      file: liquibase/db.changelog-init-category.yaml
+  - include:
+      file: liquibase/db.changelog-init-customer.yaml
+  - include:
+      file: liquibase/db.changelog-init-order.yaml
+  - include:
+      file: liquibase/db.changelog-init-product.yaml
+  - include:
+      file: liquibase/db.changelog-init-order-products.yaml
