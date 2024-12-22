@@ -48,7 +48,7 @@ public class ProductController {
   @PostMapping
   public ResponseEntity<Void> createProduct(
       @RequestBody @Valid ProductDto productDto, @AuthenticationPrincipal Jwt jwt) {
-    Long customerId = jwt.getClaim("customerId");
+    Long customerId = Long.parseLong(jwt.getClaim("customerId"));
     UUID productId =
         productService.createProduct(productMapper.fromProductDto(productDto), customerId);
     URI location = URI.create(String.format("v1/products/%s", productId));
@@ -62,7 +62,7 @@ public class ProductController {
       @PathVariable UUID productId,
       @RequestBody ProductDto productDto,
       @AuthenticationPrincipal Jwt jwt) {
-    Long customerId = jwt.getClaim("customerId");
+    Long customerId = Long.parseLong(jwt.getClaim("customerId"));
     Product product = productMapper.fromProductDto(productDto);
     product = product.toBuilder().id(productId).build();
     productService.updateProduct(product, customerId);
@@ -72,7 +72,7 @@ public class ProductController {
   @DeleteMapping("/{productId}")
   public ResponseEntity<Void> deleteProduct(
       @PathVariable UUID productId, @AuthenticationPrincipal Jwt jwt) {
-    Long customerId = jwt.getClaim("customerId");
+    Long customerId = Long.parseLong(jwt.getClaim("customerId"));
     productService.deleteProductById(productId, customerId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }

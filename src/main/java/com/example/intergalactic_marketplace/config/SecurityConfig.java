@@ -9,15 +9,18 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
   private static final String API_V_1_PRODUCTS = "/v1/products/**";
 
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+  public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtDecoder decoder)
+      throws Exception {
     JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
     jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(new AuthorityConverter());
 
@@ -34,8 +37,8 @@ public class SecurityConfig {
                     .requestMatchers(antMatcher(API_V_1_PRODUCTS))
                     .hasRole("COSMO_CAT"))
         .oauth2ResourceServer(
-            oAuth2 ->
-                oAuth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)));
+            oAuth2 -> oAuth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)))
+        .addFilterAfter(new JwtSubClaimFilter(decoder), UsernamePasswordAuthenticationFilter.class);
     return http.build();
   }
 }

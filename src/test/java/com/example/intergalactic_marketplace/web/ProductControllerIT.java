@@ -247,8 +247,7 @@ public class ProductControllerIT extends AbstractIt {
         .perform(
             post("/v1/products")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(productDto))
-                .header("customerId", customer.getId().toString()))
+                .content(objectMapper.writeValueAsString(productDto)))
         .andDo(print())
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.path").value("/v1/products"))
