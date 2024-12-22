@@ -27,6 +27,7 @@ import com.example.intergalactic_marketplace.service.mapper.CategoryMapper;
 import com.example.intergalactic_marketplace.service.mapper.CustomerMapper;
 import com.example.intergalactic_marketplace.service.mapper.ProductMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeAll;
@@ -41,6 +42,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -113,6 +120,7 @@ public class ProductControllerIT extends AbstractIt {
 
   @ParameterizedTest
   @MethodSource("provideWrongNames")
+  @WithMockUser(roles = "COSMO_CAT")
   void shouldThrowInvalidNameException(String productName, String partOfErrorMsg) throws Exception {
     seedDb();
     mapDomainFromEntity();
@@ -122,6 +130,7 @@ public class ProductControllerIT extends AbstractIt {
 
   @ParameterizedTest
   @MethodSource("provideWrongDescriptions")
+  @WithMockUser(roles = "COSMO_CAT")
   void shouldThrowInvalidDescriptionException(String productDescription, String partOfErrorMsg)
       throws Exception {
     seedDb();
@@ -132,6 +141,7 @@ public class ProductControllerIT extends AbstractIt {
 
   @ParameterizedTest
   @MethodSource("provideWrongPrices")
+  @WithMockUser(roles = "COSMO_CAT")
   void shouldThrowInvalidPriceException(int productPrice, String partOfErrorMsg) throws Exception {
     seedDb();
     mapDomainFromEntity();
@@ -143,13 +153,13 @@ public class ProductControllerIT extends AbstractIt {
   void shouldCreateValidProduct() throws Exception {
     seedDbWithoutProduct();
     mapDomainFromEntity();
+    mockCustomerInJwt(customer, List.of("COSMO_CAT"));
     ProductDto productDto = productMapper.toProductDto(product);
     mockMvc
         .perform(
             post("/v1/products")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(new ObjectMapper().writeValueAsString(productDto))
-                .header("customerId", customer.getId().toString()))
+                .content(new ObjectMapper().writeValueAsString(productDto)))
         .andDo(print())
         .andExpect(status().isCreated())
         .andExpect(header().exists("Location"))
@@ -202,14 +212,32 @@ public class ProductControllerIT extends AbstractIt {
   void shouldThrowCustomerHasNoRules() throws Exception {
     seedDb();
     mapDomainFromEntity();
+    mockCustomerInJwt(customer.toBuilder().id(-1L).build(), List.of("COSMO_CAT"));
     String path = "/v1/products/" + product.getId().toString();
     mockMvc
-        .perform(delete(path).header("customerId", -1L))
+        .perform(delete(path))
         .andDo(print())
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.path").value(path))
         .andExpect(jsonPath("$.error").value("customer-has-no-rules"))
         .andExpect(jsonPath("$.message").exists());
+  }
+
+  @Test
+  void shouldThrowUnauthorized() throws Exception {
+    seedDb();
+    mapDomainFromEntity();
+    String path = "/v1/products";
+    mockMvc.perform(post(path)).andDo(print()).andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void shouldThrowForbidden() throws Exception {
+    seedDb();
+    mapDomainFromEntity();
+    mockCustomerInJwt(customer, List.of("CAT"));
+    String path = "/v1/products";
+    mockMvc.perform(post(path)).andDo(print()).andExpect(status().isForbidden());
   }
 
   private void testInvalidProductField(
@@ -229,6 +257,20 @@ public class ProductControllerIT extends AbstractIt {
         .andExpect(jsonPath("$.invalidParams").exists())
         .andExpect(jsonPath("$.invalidParams[0].fieldName").value(invalidFieldName))
         .andExpect(jsonPath("$.invalidParams[0].reason").value(containsString(partOfErrorMsg)));
+  }
+
+  private void mockCustomerInJwt(Customer customer, List<String> roles) {
+    Jwt jwt =
+        Jwt.withTokenValue("mock-token")
+            .header("alg", "RS256")
+            .claim("customerId", customer.getId())
+            .build();
+
+    List<String> authorityList = roles.stream().map(r -> "ROLE_" + r).toList();
+    SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+    securityContext.setAuthentication(
+        new JwtAuthenticationToken(jwt, AuthorityUtils.createAuthorityList(authorityList)));
+    SecurityContextHolder.setContext(securityContext);
   }
 
   private void seedDb() {
