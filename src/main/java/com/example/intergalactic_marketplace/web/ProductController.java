@@ -11,6 +11,8 @@ import java.util.UUID;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +20,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -46,7 +47,8 @@ public class ProductController {
 
   @PostMapping
   public ResponseEntity<Void> createProduct(
-      @RequestBody @Valid ProductDto productDto, @RequestHeader Long customerId) {
+      @RequestBody @Valid ProductDto productDto, @AuthenticationPrincipal Jwt jwt) {
+    Long customerId = Long.parseLong(jwt.getClaim("customerId"));
     UUID productId =
         productService.createProduct(productMapper.fromProductDto(productDto), customerId);
     URI location = URI.create(String.format("v1/products/%s", productId));
@@ -59,7 +61,8 @@ public class ProductController {
   public ResponseEntity<Void> updateProduct(
       @PathVariable UUID productId,
       @RequestBody ProductDto productDto,
-      @RequestHeader Long customerId) {
+      @AuthenticationPrincipal Jwt jwt) {
+    Long customerId = Long.parseLong(jwt.getClaim("customerId"));
     Product product = productMapper.fromProductDto(productDto);
     product = product.toBuilder().id(productId).build();
     productService.updateProduct(product, customerId);
@@ -68,7 +71,8 @@ public class ProductController {
 
   @DeleteMapping("/{productId}")
   public ResponseEntity<Void> deleteProduct(
-      @PathVariable UUID productId, @RequestHeader Long customerId) {
+      @PathVariable UUID productId, @AuthenticationPrincipal Jwt jwt) {
+    Long customerId = Long.parseLong(jwt.getClaim("customerId"));
     productService.deleteProductById(productId, customerId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
