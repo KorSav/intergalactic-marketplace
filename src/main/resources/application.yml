@@ -1,6 +1,12 @@
 spring:
   application:
     name: intergalactic-marketplace
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jws-algorithms: RS256 
+          jwk-set-uri: http://localhost:8082/.well-known/jwks.json
   datasource:
     url: jdbc:postgresql://localhost:5432/intergalactic_marketplace
     username: postgres
